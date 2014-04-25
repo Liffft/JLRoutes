@@ -9,5 +9,6 @@
 #import <Foundation/Foundation.h>
 
 @interface NSURL (JLRoutes)
--(NSDictionary *)jlr_matchRoute:(NSString *)route;
+-(NSDictionary *)jlr_matchPattern:(NSString *)pattern;
++ (NSURL *)jlr_URLWithPattern:(NSString *)pattern parameters:(NSDictionary *)parameters;
 @end

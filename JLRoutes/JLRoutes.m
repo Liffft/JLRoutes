@@ -337,7 +337,7 @@ static BOOL shouldDecodePlusSymbols = YES;
 	[self verboseLogWithFormat:@"Parsed fragment parameters: %@", fragmentParameters];
 
 	for (_JLRoute *route in routes) {
-		NSDictionary *matchParameters = [URL jlr_matchRoute:route.pattern];
+		NSDictionary *matchParameters = [URL jlr_matchPattern:route.pattern];
 		if (matchParameters) {
 			[self verboseLogWithFormat:@"Successfully matched %@", route];
             if (!executeBlock) {

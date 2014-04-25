@@ -12,7 +12,7 @@
 
 @implementation NSURL (JLRoutes)
 
--(NSDictionary *)jlr_matchRoute:(NSString *)pattern {
+-(NSDictionary *)jlr_matchPattern:(NSString *)pattern {
     return [self parametersForURL:self pattern:pattern];
 }
 
@@ -76,5 +76,25 @@
 	return routeParameters;
 }
 
++ (NSURL *)jlr_URLWithPattern:(NSString *)pattern parameters:(NSDictionary *)parameters
+{
+    NSCharacterSet *nonAlphaNumericCharacterSet = [[NSCharacterSet alphanumericCharacterSet] invertedSet];
+
+    NSString *urlString = pattern;
+    NSArray *keyArray = [[parameters allKeys] sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+        return [obj1 length] > [obj2 length] ? NSOrderedAscending : NSOrderedDescending;
+    }];
+    for (NSString *key in keyArray) {
+        if(![key isKindOfClass:[NSString class]]) { return nil; }
+
+        if ([key rangeOfCharacterFromSet:nonAlphaNumericCharacterSet].location != NSNotFound) {
+            return nil;
+        }
+        NSString *valueString = [parameters objectForKey:key];
+        NSString *keyString = [NSString stringWithFormat:@":%@", key];
+        urlString = [urlString stringByReplacingOccurrencesOfString:keyString withString:valueString];
+    }
+    return [NSURL URLWithString:urlString];
+}
 
 @end
