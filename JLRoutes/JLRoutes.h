@@ -79,6 +79,7 @@ static NSString *const kJLRoutesGlobalNamespaceKey = @"JLRoutesGlobalNamespace";
 /// Allows configuration of verbose logging. Default is NO. This is mostly just helpful with debugging.
 + (void)setVerboseLoggingEnabled:(BOOL)loggingEnabled;
 + (BOOL)isVerboseLoggingEnabled;
++ (void)verboseLogWithFormat:(NSString *)format, ...;
 
 /// Controls whether or not this routes controller will try to match a URL with global routes if it can't be matched in the current namespace. Default is NO.
 @property (assign) BOOL shouldFallbackToGlobalRoutes;

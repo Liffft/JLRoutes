@@ -11,7 +11,8 @@
  */
 
 #import "JLRoutes.h"
-
+#import "NSString+JLRoutes.h"
+#import "NSURL+JLRoutes.h"
 
 static NSMutableDictionary *routeControllersMap = nil;
 static BOOL verboseLoggingEnabled = NO;
@@ -30,39 +31,7 @@ static BOOL shouldDecodePlusSymbols = YES;
 @end
 
 
-@interface NSString (JLRoutes)
 
-- (NSString *)JLRoutes_URLDecodedString;
-- (NSDictionary *)JLRoutes_URLParameterDictionary;
-
-@end
-
-
-@implementation NSString (JLRoutes)
-
-- (NSString *)JLRoutes_URLDecodedString {
-	NSString *input = shouldDecodePlusSymbols ? [self stringByReplacingOccurrencesOfString:@"+" withString:@" " options:NSLiteralSearch range:NSMakeRange(0, self.length)] : self;
-	return [input stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-}
-
-- (NSDictionary *)JLRoutes_URLParameterDictionary {
-	NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-
-	if (self.length && [self rangeOfString:@"="].location != NSNotFound) {
-		NSArray *keyValuePairs = [self componentsSeparatedByString:@"&"];
-		for (NSString *keyValuePair in keyValuePairs) {
-			NSArray *pair = [keyValuePair componentsSeparatedByString:@"="];
-			// don't assume we actually got a real key=value pair. start by assuming we only got @[key] before checking count
-			NSString *paramValue = pair.count == 2 ? pair[1] : @"";
-			// CFURLCreateStringByReplacingPercentEscapesUsingEncoding may return NULL
-			parameters[pair[0]] = [paramValue JLRoutes_URLDecodedString] ?: @"";
-		}
-	}
-
-	return parameters;
-}
-
-@end
 
 
 @interface _JLRoute : NSObject
@@ -367,19 +336,8 @@ static BOOL shouldDecodePlusSymbols = YES;
 	NSDictionary *fragmentParameters = [URL.fragment JLRoutes_URLParameterDictionary];
 	[self verboseLogWithFormat:@"Parsed fragment parameters: %@", fragmentParameters];
 
-	// break the URL down into path components and filter out any leading/trailing slashes from it
-	NSArray *pathComponents = [(URL.pathComponents ?: @[]) filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"NOT SELF like '/'"]];
-	
-	if ([URL.host rangeOfString:@"."].location == NSNotFound) {
-		// For backward compatibility, handle scheme://path/to/ressource as if path was part of the
-		// path if it doesn't look like a domain name (no dot in it)
-		pathComponents = [@[URL.host] arrayByAddingObjectsFromArray:pathComponents];
-	}
-	
-	[self verboseLogWithFormat:@"URL path components: %@", pathComponents];
-	
 	for (_JLRoute *route in routes) {
-		NSDictionary *matchParameters = [route parametersForURL:URL components:pathComponents];
+		NSDictionary *matchParameters = [URL jlr_matchRoute:route.pattern];
 		if (matchParameters) {
 			[self verboseLogWithFormat:@"Successfully matched %@", route];
             if (!executeBlock) {
